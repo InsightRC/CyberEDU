@@ -6,7 +6,9 @@ Description: Un serviciu obișnuit de jurnalizare web funcționează în fundal,
 
 Totuși, în spatele aparențelor, ceva nu este în regulă – există suspiciuni privind o portiță de acces ascunsă.
 
-Looking at the http streams in the PCAP, we can see base64 after some Mozilla User-Agents, that lead to a script on github. The script is no longer, but by searching for changes in the repository, we can find it (photo).
+Looking at the http streams in the PCAP, we can see base64 after some Mozilla User-Agents, that lead to a script on github. The script is no longer, but by searching for changes in the repository, we can find it:
+
+![photo was here](images/phantom-logger.png)
 
 To reverse the script, we must gather all subdomains of .rocsc.ro (use dns filter and then write the numbers) and XOR their ASCII unicodes.
 ```python
