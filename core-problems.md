@@ -17,8 +17,8 @@ Q1. What is the IP address of the attacker?
 
 Using the ```linux_netstat``` command, we can see 2 established connections to this address:
 ```
-880079f34e00 TCP      192.168.1.136   :   22 192.168.1.194   :50606 ESTABLISHED    
-880079f35500 TCP      192.168.1.136   :   22 192.168.1.194   :55936 ESTABLISHED 
+880079f34e00 TCP      192.168.1.136   :   22 192.168.1.194   :50606 ESTABLISHED
+880079f35500 TCP      192.168.1.136   :   22 192.168.1.194   :55936 ESTABLISHED
 ```
 Q2. What model is the CPU of the affected machine?
 
@@ -34,8 +34,8 @@ Using ```linux_ifconfig``` gives us the IPv4 and MAC addresses of the machine:
 ```
 Interface        IP Address           MAC Address        Promiscous Mode
 ---------------- -------------------- ------------------ ---------------
-lo               127.0.0.1            00:00:00:00:00:00  False          
-eth0             192.168.1.136        08:00:27:cc:dd:e0  True           
+lo               127.0.0.1            00:00:00:00:00:00  False
+eth0             192.168.1.136        08:00:27:cc:dd:e0  True
 ```
 Q4. What is the MAC address of the attacker machine?
 
@@ -69,13 +69,40 @@ See Q6 for the answer.
 
 Q8. What is the password of the unprivileged account?
 
+In /var/auth.log, I saw a reference to PWD=/run/shm, so I checked that folder and found some interesting scripts anf files:                                                                
+
+```
+0xffff88007b2dfa98                      7267 /run/shm
+0xffff880079c722f8                     63293 /run/shm/cve
+0xffff88007b2de838                     63289 /run/shm/cve.c
+0xffff880079e6c058                     63274 /run/shm/passwd.bak
+0xffff880079ba1018                     38607 /run/shm/linpeas2.out
+0xffff880079ba1558                      9597 /run/shm/linpeas.out
+0xffff880079ba0ad8                      9596 /run/shm/linpeas.sh
+0xffff88007b2df7f8                      7265 /run/shm
+```
+
+Checking password.bak, I found the password:
+
+```
+carl:Thisiscarlsecurepassword:1000:1000:carl,,,:/home/carl:/bin/bash
+```
+
 Q9. What is the CVE-ID of the exploit used to gain root access?
+
+Checking the cve.c file gave me the downloaded exploit, so I used google dorks to find it: CVE-2015-1328
 
 Q10. Provide the link of the exploit from exploit-db.com.
 
+https://www.exploit-db.com/exploits/37292
+
 Q11. What program/script did the attacker download on the server for the initial recon?
 
+Q8 has the answer.
+
 Q12. The attacker might have set a recording mechanism on the network. Find out where is this recodring stored (absolute path).
+
+
 
 Q13. What PID does this recording mechanism have?
 
@@ -97,7 +124,7 @@ Q19. The attacker exfiltrated some information from the root user. What is this 
 
 Using ```linux_psaux``` I found a certain command that seemed interesting to delve into:
 ```
-4539   0      0      tcpdump -i eth0 -w /home/carl/capture.pcap 
+4539   0      0      tcpdump -i eth0 -w /home/carl/capture.pcap
 ```
 So I proceeded to find and dump that file, using ```linux_find_file``` with the -F switch and then the -i switch when I got the inode number of it.
 Looking through the capture, a certain POST request stood out:
@@ -109,6 +136,6 @@ Accept: */*
 Content-Type: text/xml
 Content-Length: 70
 
-CTF{3041f1ad38fbb821aea811dff4190ed5527aeec0ed385789219dcdcf7de81d4f} 
+CTF{3041f1ad38fbb821aea811dff4190ed5527aeec0ed385789219dcdcf7de81d4f}
 ```
 It can also be found in /root/root.txt using ```linux_enumerate_files``` and then dumping it.
