@@ -28,6 +28,6 @@ OSCN{23,37215}
 
 ### Q5. Ce CVE utilizează variația malware-ului principal?
 
-The family of the malware ( see this https://github.com/altilunium/jaws.exploit and this https://www.virustotal.com/gui/file/d0f7a59eb33c351c2d856b9b8153d16552bba1d912d79bcd901127cee891f9b7/detection), the malware family associated with the ports it scanned (Q4) it Satoshi. Search on malpedia for the CVE: https://malpedia.caad.fkie.fraunhofer.de/details/elf.satori
+The family of the malware ( see this https://github.com/altilunium/jaws.exploit and this https://www.virustotal.com/gui/file/d0f7a59eb33c351c2d856b9b8153d16552bba1d912d79bcd901127cee891f9b7/detection), the malware family associated with the ports it scanned (Q4) is Satoshi. Search on malpedia for the CVE: https://malpedia.caad.fkie.fraunhofer.de/details/elf.satori
 
 CVE-2014-8361
